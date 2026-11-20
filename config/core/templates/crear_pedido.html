@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Crear Pedido</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <select name="cliente" class="form-control mb-2">
+        {% for cliente in clientes %}
+        <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+        {% endfor %}
+    </select>
+
+    <button class="btn btn-success">Crear</button>
+</form>
+<div class="alert alert-info">
+    Después de crear el pedido podrás agregar productos
+</div>
+
+{% endblock %}

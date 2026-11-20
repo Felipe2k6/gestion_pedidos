@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Crear Cliente</h2>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    <input name="nombre" class="form-control mb-2" placeholder="Nombre">
+    <input name="telefono" class="form-control mb-2" placeholder="Teléfono">
+    <button class="btn btn-success">Guardar</button>
+</form>
+
+{% endblock %}

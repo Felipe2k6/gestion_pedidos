@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Crear Producto</h2>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if user.perfil.tipo_usuario == 'admin' %}
+
+<form method="POST">
+    {% csrf_token %}
+    <input name="nombre" class="form-control mb-2" placeholder="Nombre">
+    <input name="precio" type="number" class="form-control mb-2" placeholder="Precio">
+    <input name="stock" type="number" class="form-control mb-2" placeholder="Stock">
+    <button class="btn btn-success">Guardar</button>
+</form>
+
+{% else %}
+
+<div class="alert alert-danger">
+    No tienes permisos para crear productos
+</div>
+
+{% endif %}
+
+{% endblock %}
