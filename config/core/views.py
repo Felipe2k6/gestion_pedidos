@@ -8,10 +8,14 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from .utils import es_admin, es_cliente, es_proveedor, perfil_usuario
 from django.db.models import Sum, F
+from django.db.models import Count, DecimalField, F, Q, Sum
+from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from decimal import Decimal, InvalidOperation
+from datetime import datetime
+from django.utils import timezone
 
 
 def _inicio_por_rol(user):
@@ -607,6 +611,88 @@ def dashboard(request):
     .annotate(total=Sum('cantidad'))
     .order_by('-total')[:5]
 )
+    ingresos = DetallePedido.objects.filter(
+        pedido__estado=Pedido.ESTADO_PENDIENTE,
+    ).aggregate(
+        total=Sum(
+            F('cantidad') * F('precio'),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        ),
+    )['total'] or Decimal('0')
+
+    fecha_actual = timezone.localtime()
+    indice_mes_actual = fecha_actual.year * 12 + fecha_actual.month - 1
+    meses = []
+    for desplazamiento in range(-11, 1):
+        indice_mes = indice_mes_actual + desplazamiento
+        anio, mes_cero = divmod(indice_mes, 12)
+        mes = mes_cero + 1
+        meses.append({
+            'label': f'{anio:04d}-{mes:02d}',
+            'inicio': timezone.make_aware(datetime(anio, mes, 1)),
+        })
+
+    indice_mes_siguiente = indice_mes_actual + 1
+    anio_siguiente, mes_siguiente_cero = divmod(indice_mes_siguiente, 12)
+    inicio_siguiente_mes = timezone.make_aware(
+        datetime(anio_siguiente, mes_siguiente_cero + 1, 1),
+    )
+    datos_mensuales = {
+        fila['mes'].strftime('%Y-%m'): fila
+        for fila in pedidos_activos.filter(
+            fecha__gte=meses[0]['inicio'],
+            fecha__lt=inicio_siguiente_mes,
+        ).annotate(
+            mes=TruncMonth('fecha'),
+        ).values('mes').annotate(
+            pedidos=Count('id', distinct=True),
+            ventas=Sum(
+                F('detallepedido__cantidad') * F('detallepedido__precio'),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            ),
+        ).order_by('mes')
+    }
+    ventas_mensuales = [
+        {
+            'mes': mes['label'],
+            'pedidos': datos_mensuales.get(mes['label'], {}).get('pedidos', 0),
+            'ventas': datos_mensuales.get(mes['label'], {}).get('ventas') or Decimal('0'),
+        }
+        for mes in meses
+    ]
+
+    clientes_compradores = Cliente.objects.filter(
+        pedido__estado=Pedido.ESTADO_PENDIENTE,
+    ).distinct().count()
+    clientes_top = list(
+        Cliente.objects.annotate(
+            pedidos=Count(
+                'pedido',
+                filter=Q(pedido__estado=Pedido.ESTADO_PENDIENTE),
+                distinct=True,
+            ),
+            ventas=Sum(
+                F('pedido__detallepedido__cantidad') * F('pedido__detallepedido__precio'),
+                filter=Q(pedido__estado=Pedido.ESTADO_PENDIENTE),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            ),
+        ).filter(
+            pedidos__gt=0,
+        ).values(
+            'nombre',
+            'pedidos',
+            'ventas',
+        ).order_by('-ventas', '-pedidos', 'nombre')[:8]
+    )
+    clientes_por_direccion = list(
+        Cliente.objects.exclude(
+            direccion='',
+        ).values(
+            'direccion',
+        ).annotate(
+            clientes=Count('id'),
+        ).order_by('-clientes', 'direccion')[:8]
+    )
     ultimos_pedidos = Pedido.objects.order_by('-id')[:5]
 
     context = {
@@ -615,6 +701,13 @@ def dashboard(request):
         'pedidos': total_pedidos,
         'ingresos': ingresos,
         'top_productos': top_productos,
+        'clientes_compradores': clientes_compradores,
+        'productos': total_productos,
+        'pedidos': total_pedidos,
+        'ingresos': ingresos,
+        'ventas_mensuales': ventas_mensuales,
+        'clientes_top': clientes_top,
+        'clientes_por_direccion': clientes_por_direccion,
         'ultimos_pedidos': ultimos_pedidos,
     }
 

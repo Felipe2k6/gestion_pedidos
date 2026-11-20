@@ -3,55 +3,154 @@
 
 {% block content %}
 
+<div class="mb-4">
+    <p class="text-secondary mb-0">Resumen de clientes, compras y actividad comercial.</p>
+</div>
+
 <div class="row g-3">
-
-<div class="col-md-3">
-<div class="card p-3 shadow-sm text-center">
-<h6>Clientes</h6>
-<h2>{{ clientes }}</h2>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card p-3 shadow-sm text-center">
-<h6>Productos</h6>
-<h2>{{ productos }}</h2>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card p-3 shadow-sm text-center">
-<h6>Pedidos</h6>
-<h2>{{ pedidos }}</h2>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card p-3 shadow-sm text-center bg-success text-white">
-<h6>Ingresos</h6>
-<h2>$ {{ ingresos }}</h2>
-</div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3">
+            <span class="text-secondary">Clientes registrados</span>
+            <strong class="fs-2">{{ clientes }}</strong>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3">
+            <span class="text-secondary">Clientes con compras</span>
+            <strong class="fs-2">{{ clientes_compradores }}</strong>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3">
+            <span class="text-secondary">Pedidos activos</span>
+            <strong class="fs-2">{{ pedidos }}</strong>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3 text-white" style="background: var(--green)">
+            <span>Ventas de pedidos activos</span>
+            <strong class="fs-2">$ {{ ingresos|floatformat:2 }}</strong>
+        </div>
+    </div>
 </div>
 
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <section class="card border-0 shadow-sm p-3 p-md-4 h-100">
+            <div class="mb-3">
+                <h2 class="h5 mb-1">Ventas y pedidos por mes</h2>
+                <p class="small text-secondary mb-0">Últimos 12 meses, sin incluir pedidos cancelados.</p>
+            </div>
+            <div style="height: 300px">
+                <canvas id="ventasMensuales" aria-label="Gráfico de ventas y pedidos por mes" role="img"></canvas>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-6">
+        <section class="card border-0 shadow-sm p-3 p-md-4 h-100">
+            <div class="mb-3">
+                <h2 class="h5 mb-1">Clientes con mayores compras</h2>
+                <p class="small text-secondary mb-0">Ventas acumuladas en pedidos activos.</p>
+            </div>
+            {% if clientes_top %}
+            <div style="height: 300px">
+                <canvas id="clientesTop" aria-label="Gráfico de ventas por cliente" role="img"></canvas>
+            </div>
+            {% else %}
+            <p class="text-secondary mb-0">Todavía no hay compras registradas.</p>
+            {% endif %}
+        </section>
+    </div>
+    <div class="col-xl-6">
+        <section class="card border-0 shadow-sm p-3 p-md-4 h-100">
+            <div class="mb-3">
+                <h2 class="h5 mb-1">Clientes por dirección</h2>
+                <p class="small text-secondary mb-0">Agrupados por la dirección registrada; no se geocodifican ni comparten ubicaciones.</p>
+            </div>
+            {% if clientes_por_direccion %}
+            <div style="height: 300px">
+                <canvas id="clientesPorDireccion" aria-label="Gráfico de clientes por dirección registrada" role="img"></canvas>
+            </div>
+            {% else %}
+            <p class="text-secondary mb-0">No hay direcciones registradas para mostrar.</p>
+            {% endif %}
+        </section>
+    </div>
 </div>
 
-<div class="card shadow-sm p-4 mt-4">
-<canvas id="grafica"></canvas>
-</div>
-
-{{ top_productos|json_script:"data" }}
+{{ ventas_mensuales|json_script:"ventas-mensuales-data" }}
+{{ clientes_top|json_script:"clientes-top-data" }}
+{{ clientes_por_direccion|json_script:"direcciones-data" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const data = JSON.parse(document.getElementById('data').textContent);
+const ventasMensuales = JSON.parse(document.getElementById('ventas-mensuales-data').textContent);
+const clientesTop = JSON.parse(document.getElementById('clientes-top-data').textContent);
+const direcciones = JSON.parse(document.getElementById('direcciones-data').textContent);
 
-new Chart(document.getElementById('grafica'), {
-type: 'bar',
-data: {
-labels: data.map(p => p.nombre),
-datasets: [{ data: data.map(p => p.total) }]
-}
+new Chart(document.getElementById('ventasMensuales'), {
+    type: 'bar',
+    data: {
+        labels: ventasMensuales.map(item => item.mes),
+        datasets: [
+            {
+                type: 'line',
+                label: 'Ventas ($)',
+                data: ventasMensuales.map(item => Number(item.ventas)),
+                borderColor: '#167a68',
+                backgroundColor: '#167a68',
+                yAxisID: 'ventas',
+                tension: 0.25
+            },
+            {
+                label: 'Pedidos',
+                data: ventasMensuales.map(item => item.pedidos),
+                backgroundColor: '#d9ef6a',
+                yAxisID: 'pedidos',
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+            ventas: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'Ventas ($)' } },
+            pedidos: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: 'Pedidos' }, grid: { drawOnChartArea: false } }
+        }
+    }
 });
+
+if (clientesTop.length) {
+    new Chart(document.getElementById('clientesTop'), {
+        type: 'bar',
+        data: {
+            labels: clientesTop.map(item => item.nombre),
+            datasets: [{ label: 'Ventas ($)', data: clientesTop.map(item => Number(item.ventas)), backgroundColor: '#167a68', borderRadius: 4 }]
+        },
+        options: {
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            scales: { x: { beginAtZero: true } }
+        }
+    });
+}
+
+if (direcciones.length) {
+    new Chart(document.getElementById('clientesPorDireccion'), {
+        type: 'bar',
+        data: {
+            labels: direcciones.map(item => item.direccion.length > 32 ? `${item.direccion.slice(0, 29)}...` : item.direccion),
+            datasets: [{ label: 'Clientes', data: direcciones.map(item => item.clientes), backgroundColor: '#ed825d', borderRadius: 4 }]
+        },
+        options: {
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+            plugins: { tooltip: { callbacks: { title: items => direcciones[items[0].dataIndex].direccion } } }
+        }
+    });
+}
 </script>
 
 {% endblock %}
