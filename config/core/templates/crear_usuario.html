@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Crear usuario{% endblock %}
+{% block page_title %}Crear usuario | Voltio Tech{% endblock %}
+{% block content %}
+<section class="content-surface" style="max-width: 820px;">
+    <p class="text-secondary mb-4">Crea credenciales y asigna una ficha existente. La contraseña no se muestra después de guardar.</p>
+    {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+    <form method="POST" id="user-form">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label for="username" class="form-label">Nombre de usuario</label>
+                <input id="username" name="username" class="form-control" maxlength="150" autocomplete="username" value="{{ form_data.username|default:'' }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="email" class="form-label">Correo electrónico</label>
+                <input id="email" name="email" type="email" class="form-control" value="{{ form_data.email|default:'' }}">
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="first-name" class="form-label">Nombre</label>
+                <input id="first-name" name="first_name" class="form-control" value="{{ form_data.first_name|default:'' }}">
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="last-name" class="form-label">Apellido</label>
+                <input id="last-name" name="last_name" class="form-control" value="{{ form_data.last_name|default:'' }}">
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="user-role" class="form-label">Rol</label>
+                <select id="user-role" name="tipo_usuario" class="form-select" required>
+                    <option value="">Seleccionar rol</option>
+                    {% for valor, etiqueta in roles %}
+                    <option value="{{ valor }}" {% if form_data.tipo_usuario == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 role-link" data-role="cliente">
+                <label for="user-client" class="form-label">Ficha de cliente</label>
+                <select id="user-client" name="cliente" class="form-select">
+                    <option value="">Seleccionar cliente sin cuenta</option>
+                    {% for cliente in clientes %}<option value="{{ cliente.id }}" {% if form_data.cliente == cliente.id|stringformat:'s' %}selected{% endif %}>{{ cliente.nombre }} · {{ cliente.documento_identidad }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 role-link" data-role="proveedor">
+                <label for="user-supplier" class="form-label">Ficha de proveedor</label>
+                <select id="user-supplier" name="proveedor" class="form-select">
+                    <option value="">Seleccionar proveedor sin cuenta</option>
+                    {% for proveedor in proveedores %}<option value="{{ proveedor.id }}" {% if form_data.proveedor == proveedor.id|stringformat:'s' %}selected{% endif %}>{{ proveedor.nombre }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="user-password" class="form-label">Contraseña inicial</label>
+                <input id="user-password" name="password" type="password" class="form-control" autocomplete="new-password" required>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="user-password-confirm" class="form-label">Confirmar contraseña</label>
+                <input id="user-password-confirm" name="password_confirmation" type="password" class="form-control" autocomplete="new-password" required>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-person-check"></i> Crear cuenta</button>
+            <a href="/usuarios/" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</section>
+<script>
+const roleSelect = document.getElementById('user-role');
+const roleLinks = document.querySelectorAll('.role-link');
+function updateRoleLinks() {
+    for (const section of roleLinks) {
+        const visible = section.dataset.role === roleSelect.value;
+        section.hidden = !visible;
+        section.querySelector('select').required = visible;
+    }
+}
+roleSelect.addEventListener('change', updateRoleLinks);
+updateRoleLinks();
+</script>
+{% endblock %}

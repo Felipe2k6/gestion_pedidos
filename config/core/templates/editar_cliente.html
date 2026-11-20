@@ -1,34 +1,40 @@
 {% extends 'base.html' %}
-
+{% block title %}Editar cliente{% endblock %}
+{% block page_title %}Editar cliente | Voltio Tech{% endblock %}
 {% block content %}
-<div class="container mt-4">
-
-    <h1>Editar Cliente</h1>
-
-    {% if error %}
-    <div class="alert alert-danger">
-        {{ error }}
-    </div>
-    {% endif %}
+<section class="content-surface" style="max-width: 760px;">
+    <p class="text-secondary mb-4">Actualiza la información de contacto del cliente.</p>
+    {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
 
     <form method="POST">
         {% csrf_token %}
-        
-        <div class="mb-3">
-            <label>Nombre</label>
-            <input type="text" name="nombre" class="form-control" value="{{ Cliente.nombre }}" required>
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label for="cliente-registro" class="form-label">N.º de registro interno</label>
+                <input id="cliente-registro" class="form-control" value="{{ cliente.id }}" readonly>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="cliente-nombre" class="form-label">Nombre</label>
+                <input id="cliente-nombre" type="text" name="nombre" maxlength="100" class="form-control" value="{{ cliente.nombre }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="cliente-telefono" class="form-label">Teléfono</label>
+                <input id="cliente-telefono" type="tel" name="telefono" maxlength="20" class="form-control" value="{{ cliente.telefono }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+                <label for="cliente-documento" class="form-label">Documento de identidad (DNI/RUT/CI)</label>
+                <input id="cliente-documento" type="text" name="documento_identidad" maxlength="30" class="form-control" value="{{ cliente.documento_identidad|default:'' }}" required>
+            </div>
+            <div class="col-12">
+                <label for="cliente-direccion" class="form-label">Dirección</label>
+                <input id="cliente-direccion" type="text" name="direccion" maxlength="255" class="form-control" value="{{ cliente.direccion }}" required>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label>Teléfono</label>
-            <input type="number" name="telefono" class="form-control" value="{{ Cliente.precio }}" required>
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Guardar cambios</button>
+            <a href="/clientes/" class="btn btn-outline-secondary">Cancelar</a>
         </div>
-
-        <button type="submit" class="btn btn-warning">Actualizar</button>
     </form>
-
-    <a href="/clientes/" class="btn btn-secondary mt-3">Volver</a>
-
-</div>
+</section>
 {% endblock %}
 

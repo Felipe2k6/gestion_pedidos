@@ -1,25 +1,20 @@
 {% extends 'base.html' %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block page_title %}Iniciar sesión | Voltio Tech{% endblock %}
 
 {% block content %}
 
-<div class="col-md-4 offset-md-4">
-    <h2>Iniciar Sesión</h2>
-    {% if user.is_authenticated %}
-    <div class="alert alert-info">
-        Ya estás logueado
-    </div>
-{% endif %}
-
-    {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
-
+<section class="content-surface mx-auto" style="max-width: 460px;">
+    <h2 class="h4 mb-4">Acceso al gestor</h2>
+    {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
     <form method="POST">
         {% csrf_token %}
-        <input type="text" name="username" class="form-control mb-2" placeholder="Usuario" required>
-        <input type="password" name="password" class="form-control mb-2" placeholder="Contraseña" required>
-        <button class="btn btn-primary w-100">Ingresar</button>
+        <label for="username" class="form-label">Usuario</label>
+        <input id="username" type="text" name="username" class="form-control mb-3" autocomplete="username" required>
+        <label for="password" class="form-label">Contraseña</label>
+        <input id="password" type="password" name="password" class="form-control mb-4" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
     </form>
-</div>
+</section>
 
 {% endblock %}
