@@ -1,0 +1,22 @@
+@startuml
+title RF-05 - Tablero de gestion e indicadores
+left to right direction
+
+actor Administrador
+
+rectangle "Sistema de gestion de pedidos" {
+  usecase "Consultar tablero" as Dashboard
+  usecase "Consultar totales de clientes,\nproductos y pedidos activos" as Totals
+  usecase "Consultar ingresos de\npedidos pendientes" as Income
+  usecase "Consultar ventas y pedidos\nmensuales de los ultimos 12 meses" as Monthly
+  usecase "Consultar clientes destacados\ny clientes por direccion" as Clients
+  usecase "Consultar los cinco\npedidos mas recientes" as RecentOrders
+}
+
+Administrador --> Dashboard
+Dashboard --> Totals : <<include>>
+Dashboard --> Income : <<include>>
+Dashboard --> Monthly : <<include>>
+Dashboard --> Clients : <<include>>
+Dashboard --> RecentOrders : <<include>>
+@enduml

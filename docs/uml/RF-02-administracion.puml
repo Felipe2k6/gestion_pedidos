@@ -1,0 +1,32 @@
+@startuml
+title RF-02 - Administracion de clientes, proveedores y cuentas
+left to right direction
+
+actor Administrador
+
+rectangle "Sistema de gestion de pedidos" {
+  usecase "Consultar clientes" as ListClients
+  usecase "Registrar cliente" as CreateClient
+  usecase "Editar cliente" as EditClient
+  usecase "Eliminar cliente" as DeleteClient
+
+  usecase "Consultar proveedores" as ListSuppliers
+  usecase "Registrar proveedor" as CreateSupplier
+  usecase "Editar proveedor" as EditSupplier
+
+  usecase "Consultar usuarios" as ListUsers
+  usecase "Crear cuenta de usuario" as CreateUser
+  usecase "Asignar rol y vincular\ncliente o proveedor" as AssignRole
+}
+
+Administrador --> ListClients
+Administrador --> CreateClient
+Administrador --> EditClient
+Administrador --> DeleteClient
+Administrador --> ListSuppliers
+Administrador --> CreateSupplier
+Administrador --> EditSupplier
+Administrador --> ListUsers
+Administrador --> CreateUser
+CreateUser --> AssignRole : <<include>>
+@enduml

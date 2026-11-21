@@ -1,0 +1,24 @@
+@startuml
+title RF-01 - Autenticacion y acceso por rol
+left to right direction
+
+actor Administrador
+actor Cliente
+actor Proveedor
+
+rectangle "Sistema de gestion de pedidos" {
+  usecase "Iniciar sesion" as Login
+  usecase "Cerrar sesion" as Logout
+  usecase "Acceder a las funciones\npermitidas por rol" as RoleAccess
+}
+
+Administrador --> Login
+Cliente --> Login
+Proveedor --> Login
+
+Administrador --> Logout
+Cliente --> Logout
+Proveedor --> Logout
+
+Login --> RoleAccess : <<include>>
+@enduml

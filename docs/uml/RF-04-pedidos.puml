@@ -1,0 +1,35 @@
+@startuml
+title RF-04 - Gestion de pedidos
+left to right direction
+
+actor Administrador
+actor Cliente
+
+rectangle "Sistema de gestion de pedidos" {
+  usecase "Crear pedido" as CreateOrder
+  usecase "Consultar pedidos" as ListOrders
+  usecase "Agregar productos\na un pedido" as AddProducts
+  usecase "Validar disponibilidad\nde stock" as CheckStock
+  usecase "Descontar stock\ny guardar precio aplicado" as UpdateStock
+  usecase "Consultar total\ndel pedido" as ViewTotal
+  usecase "Cancelar pedido" as CancelOrder
+  usecase "Restaurar stock" as RestoreStock
+}
+
+Administrador --> CreateOrder : para un cliente
+Cliente --> CreateOrder : pedido propio
+Administrador --> ListOrders : todos
+Cliente --> ListOrders : propios
+
+Administrador --> AddProducts
+Cliente --> AddProducts : pedido propio
+AddProducts --> CheckStock : <<include>>
+AddProducts --> UpdateStock : <<include>>
+
+Administrador --> ViewTotal
+Cliente --> ViewTotal : pedido propio
+
+Administrador --> CancelOrder
+Cliente --> CancelOrder : pedido propio
+CancelOrder --> RestoreStock : <<include>>
+@enduml

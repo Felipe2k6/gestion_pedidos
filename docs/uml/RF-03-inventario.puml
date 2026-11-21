@@ -1,0 +1,36 @@
+@startuml
+title RF-03 - Catalogo y control de inventario
+left to right direction
+
+actor Administrador
+actor Proveedor
+actor Cliente
+
+rectangle "Sistema de gestion de pedidos" {
+  usecase "Consultar catalogo\nde productos" as BrowseProducts
+  usecase "Registrar producto" as CreateProduct
+  usecase "Editar producto" as EditProduct
+  usecase "Eliminar producto" as DeleteProduct
+  usecase "Registrar recepcion\nde mercancia" as ReceiveGoods
+  usecase "Validar proveedor activo\ny datos de recepcion" as ValidateReceipt
+  usecase "Aumentar stock" as IncreaseStock
+  usecase "Consultar historial\nde recepciones" as ListReceipts
+}
+
+Administrador --> BrowseProducts
+Cliente --> BrowseProducts
+Proveedor --> BrowseProducts
+
+Administrador --> CreateProduct
+Administrador --> EditProduct
+Administrador --> DeleteProduct
+Proveedor --> EditProduct : solo productos vinculados
+
+Administrador --> ReceiveGoods
+Proveedor --> ReceiveGoods : para su proveedor vinculado
+ReceiveGoods --> ValidateReceipt : <<include>>
+ReceiveGoods --> IncreaseStock : <<include>>
+
+Administrador --> ListReceipts : todas las recepciones
+Proveedor --> ListReceipts : solo sus recepciones
+@enduml
